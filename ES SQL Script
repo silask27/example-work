@@ -1,0 +1,22 @@
+SELECT
+    DISTINCT i.invoice_no AS "Invoice Number",
+    -- i.INVOICE_DATE AS "Invoice Date",
+    -- i.BILLING_APPROVED_DATE AS "Approval Date",
+    i.billed_amount AS "Billed Amount",
+    li.branch_id,
+    m.name as "Branch Name",
+    CONCAT(u.first_name, ' ', u.last_name) AS "Approver",
+    CONCAT(u2.first_name, ' ', u2.last_name) AS "Creator",
+    CAST(I.INVOICE_DATE AS DATE)                                      AS INV_DATE_RAW,
+    CAST(CONVERT_TIMEZONE('America/Chicago', I.INVOICE_DATE) AS DATE) AS INV_DATE_CORRECT
+   
+FROM "ES_WAREHOUSE"."PUBLIC"."INVOICES" i
+LEFT JOIN "ES_WAREHOUSE"."PUBLIC"."USERS" u ON i.billing_approved_by_user_id = u.user_id
+LEFT JOIN "ES_WAREHOUSE"."PUBLIC"."USERS" u2 ON i.created_by_user_id = u2.user_id
+LEFT JOIN "ES_WAREHOUSE"."PUBLIC"."LINE_ITEMS" li on li.invoice_id = i.invoice_id
+LEFT JOIN "ES_WAREHOUSE"."PUBLIC"."MARKETS" m ON li.branch_id = m.market_id
+
+where i.billing_approved = TRUE
+AND i.COMPANY_ID = 1854
+AND INV_DATE_CORRECT != INV_DATE_RAW
+AND INV_DATE_CORRECT >= DATE '2023-07-01' AND i.INVOICE_DATE <= DATE '2024-01-31';
